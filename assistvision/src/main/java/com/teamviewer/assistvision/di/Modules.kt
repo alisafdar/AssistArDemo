@@ -9,7 +9,9 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val appModule = module {
-    single { NativeObjectRecognitionService(androidContext()) }
+    single {
+        NativeObjectRecognitionService(androidContext())
+    }
     factory { DetectObjectsUseCase(get()) }
     single<WebSocketDataSource> { LocalMockWebSocket() } bind WebSocketDataSource::class
 }
