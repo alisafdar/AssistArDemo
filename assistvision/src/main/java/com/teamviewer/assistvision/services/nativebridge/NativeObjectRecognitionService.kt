@@ -94,7 +94,7 @@ class NativeObjectRecognitionService(private val appContext: Context) {
     private fun labelFor(id: Int): String {
         // Try 0-based first, then 1-based (COCO style). Fallback to "id:x".
         return when {
-            id in labels.indices -> labels[id]
+//            id in labels.indices -> labels[id]
             (id - 1) in labels.indices -> labels[id - 1]
             else -> "id:$id"
         }

@@ -1,3 +1,5 @@
+import com.android.tools.r8.internal.di
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -59,12 +61,14 @@ android {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.ui.compose)
-    implementation(libs.core.ktx)
-    implementation(libs.lifecycle.runtime)
-    implementation(libs.koin.android)
-    implementation(libs.serialization.json)
+    implementation(libs.bundles.androidx.core)
+    implementation(libs.bundles.camerax)
+    implementation(libs.bundles.di)
     implementation(libs.bundles.network)
+    implementation(libs.bundles.images)
     implementation(libs.bundles.tensorflow)
+    implementation(libs.bundles.xml.theme)
     implementation(libs.androidx.compose.ui.graphics)
+
     debugImplementation(libs.bundles.debug.compose)
 }

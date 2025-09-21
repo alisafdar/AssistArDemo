@@ -1,4 +1,4 @@
-package com.teamviewer.assistar.demo.detect
+package com.teamviewer.assistvision.ui.detect
 
 import android.content.Context
 import android.net.Uri

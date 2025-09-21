@@ -1,7 +1,7 @@
 package com.teamviewer.assistar.demo
 
 import android.app.Application
-import com.teamviewer.assistar.demo.detect.DetectViewModel
+import com.teamviewer.assistvision.ui.detect.DetectViewModel
 import com.teamviewer.assistvision.boot.TfLiteBoot
 import com.teamviewer.assistvision.di.appModule
 import org.koin.androidx.viewmodel.dsl.viewModelOf

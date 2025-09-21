@@ -1,4 +1,4 @@
-package com.teamviewer.assistar.demo
+package com.teamviewer.assistvision.ui.detect.components
 
 import android.annotation.SuppressLint
 import android.util.Size
@@ -13,8 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -23,9 +25,9 @@ fun CameraPreviewYuv(
     modifier: Modifier,
     onFps: (Double) -> Unit,
     onFrame: (
-        y: java.nio.ByteBuffer,
-        u: java.nio.ByteBuffer,
-        v: java.nio.ByteBuffer,
+        y: ByteBuffer,
+        u: ByteBuffer,
+        v: ByteBuffer,
         width: Int,
         height: Int,
         yStride: Int,
@@ -79,7 +81,7 @@ fun CameraPreviewYuv(
 
         cameraProvider.unbindAll()
         cameraProvider.bindToLifecycle(
-            ctx as androidx.lifecycle.LifecycleOwner,
+            ctx as LifecycleOwner,
             selector,
             preview,
             analyzer

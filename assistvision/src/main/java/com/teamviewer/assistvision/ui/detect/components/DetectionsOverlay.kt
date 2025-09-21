@@ -1,5 +1,7 @@
-package com.teamviewer.assistar.demo.detect
+package com.teamviewer.assistvision.ui.detect.components
 
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -8,10 +10,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.nativeCanvas
+import com.teamviewer.assistvision.ui.detect.UiDetection
+import kotlin.math.max
 
 @Composable
 fun DetectionsOverlay(
@@ -28,8 +33,7 @@ fun DetectionsOverlay(
         val canvasW = size.width
         val canvasH = size.height
 
-        // center-crop scale + offset (same as PreviewView)
-        val scale = kotlin.math.max(canvasW / imgW, canvasH / imgH)
+        val scale = max(canvasW / imgW, canvasH / imgH)
         val dx = (canvasW - imgW * scale) / 2f
         val dy = (canvasH - imgH * scale) / 2f
 
@@ -37,7 +41,6 @@ fun DetectionsOverlay(
             translate(dx, dy)
             scale(scaleX = scale, scaleY = scale)
         }) {
-            // Draw ONLY within the image rect after transform
             clipRect(left = 0f, top = 0f, right = imgW, bottom = imgH) {
                 val stroke = Stroke(width = 3f, pathEffect = PathEffect.cornerPathEffect(8f))
                 items.forEach { d ->
@@ -46,12 +49,7 @@ fun DetectionsOverlay(
                     val r = d.right.coerceIn(0f, imgW)
                     val b = d.bottom.coerceIn(0f, imgH)
                     if (r > l && b > t) {
-                        drawRect(
-                            color = Color.Red,
-                            topLeft = Offset(l, t),
-                            size = Size(r - l, b - t),
-                            style = stroke
-                        )
+                        drawRect(Color.Red, topLeft = Offset(l, t), size = Size(r - l, b - t), style = stroke)
                         drawBanner("${d.label} (${(d.score * 100).toInt()}%)", l, t)
                     }
                 }
@@ -60,18 +58,18 @@ fun DetectionsOverlay(
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBanner(text: String, l: Float, t: Float) {
+private fun DrawScope.drawBanner(text: String, l: Float, t: Float) {
     drawContext.canvas.nativeCanvas.apply {
-        val bg = android.graphics.Paint().apply {
-            color = 0x99_00_00_00.toInt()
-            style = android.graphics.Paint.Style.FILL
+        val bg = Paint().apply {
+            color = 0x99000000.toInt()
+            style = Paint.Style.FILL
             isAntiAlias = true
         }
-        val p = android.graphics.Paint().apply {
+        val p = Paint().apply {
             isAntiAlias = true
             color = android.graphics.Color.RED
             textSize = 24f
-            typeface = android.graphics.Typeface.create("", android.graphics.Typeface.BOLD)
+            typeface = Typeface.create("", Typeface.BOLD)
         }
         val pad = 6f
         val tw = p.measureText(text)

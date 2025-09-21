@@ -65,6 +65,4 @@ network     = [ "coroutines", "okhttp"]
 images      = [ "coil-compose" ]
 tensorflow = [ "tensorflow-gpu", "tensorflow-java", "tensorflow-support" ]
 debug-compose = [ "compose-tooling" ]
-
-# NEW: XML theme deps for app (Material3 theme family)
 xml-theme = [ "material" ]
