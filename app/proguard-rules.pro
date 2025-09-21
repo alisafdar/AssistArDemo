@@ -1,21 +1,9 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# (Optional) If you reflectively access anything in your app's JNI layer
+-keep class com.teamviewer.assistvision.services.nativebridge.** { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Play-services TFLite APIs
+-keep class com.google.android.gms.tflite.** { *; }
+-dontwarn com.google.android.gms.tflite.**
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# CameraX (usually fine without rules; added here as belt & braces)
+-dontwarn androidx.camera.**
