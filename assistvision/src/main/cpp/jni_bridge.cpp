@@ -2,7 +2,10 @@
 #include <android/log.h>
 #include <vector>
 #include <cstring>
-
+#include <algorithm>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include "visioncpp/frame_store.hpp"
 #include "visioncpp/detection.hpp"
 #include "visioncpp/pipeline.hpp"
 
@@ -11,9 +14,7 @@
 
 // Helper: build JNIBridge.NativeDetections from vision::Detections
 static jobject buildDetections(JNIEnv* env, const vision::Detections& d) {
-    // Kotlin data class in: com.teamviewer.assistvision.services.nativebridge.JNIBridge.NativeDetections
     jclass outCls = env->FindClass("com/teamviewer/assistvision/services/nativebridge/JNIBridge$NativeDetections");
-    // Constructor signature: ([F [F [I D D D J) V
     jmethodID ctor = env->GetMethodID(outCls, "<init>", "([F[F[IDDDJ)V");
 
     const jint n = static_cast<jint>(d.scores.size());
@@ -42,38 +43,25 @@ static jobject buildDetections(JNIEnv* env, const vision::Detections& d) {
     return out;
 }
 
-/**
- * bool nativeInitEmbeddedSimple(boolean useXnnpack, int numThreads)
- */
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeInitEmbeddedSimple(
-        JNIEnv* /*env*/, jclass /*clazz*/,
+        JNIEnv*, jclass,
         jboolean useXnnpack, jint numThreads) {
 
     vision::InitOptions opt;
-    // GPU delegate selection is handled by GMS Lite runtime on the Java/Kotlin side.
-    opt.tfl.useGpu     = false; // ignored under GMS stable ABI
+    opt.tfl.useGpu     = false;
     opt.tfl.useXnnpack = (useXnnpack == JNI_TRUE);
     opt.tfl.numThreads = static_cast<int>(numThreads);
 
-    std::vector<std::string> labels; // empty -> use embedded labelmap
+    std::vector<std::string> labels;
     const bool ok = vision::pipelineInitializeEmbedded(labels, opt);
     LOGI("pipeline init (embedded/simple): %s", ok ? "OK" : "FAIL");
     return ok ? JNI_TRUE : JNI_FALSE;
 }
 
-/**
- * NativeDetections nativeProcessYuv420Rotated(
- *   ByteBuffer y,u,v, int width,int height, int yRow,uRow,vRow, int uPix,vPix,
- *   double blurThr,double glareThr,double brightFloor, float scoreThr,
- *   int rotationDeg)
- *
- * Preferred entry: rotates in native BEFORE detection; returns pixel-space boxes
- * in the rotated image coordinates.
- */
 extern "C" JNIEXPORT jobject JNICALL
 Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeProcessYuv420Rotated(
-        JNIEnv* env, jclass /*clazz*/,
+        JNIEnv* env, jclass,
         jobject y, jobject u, jobject v,
         jint width, jint height,
         jint yRowStride, jint uRowStride, jint vRowStride,
@@ -86,7 +74,7 @@ Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeProcessYu
     auto* uPtr = static_cast<uint8_t*>(env->GetDirectBufferAddress(u));
     auto* vPtr = static_cast<uint8_t*>(env->GetDirectBufferAddress(v));
     if (!yPtr || !uPtr || !vPtr) {
-        LOGE("nativeProcessYuv420Rotated: non-direct ByteBuffer!");
+        LOGE("nativeProcessYuv420Rotated: non-direct ByteBuffer");
         vision::Detections empty;
         return buildDetections(env, empty);
     }
@@ -99,22 +87,18 @@ Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeProcessYu
     };
 
     vision::ProcessConfig cfg;
-    cfg.blurThreshold          = blurThr;
-    cfg.glareThresholdPercent  = glareThrPercent;
-    cfg.brightnessFloor        = brightFloor;
-    cfg.scoreThreshold         = scoreThr;
+    cfg.blurThreshold         = blurThr;
+    cfg.glareThresholdPercent = glareThrPercent;
+    cfg.brightnessFloor       = brightFloor;
+    cfg.scoreThreshold        = scoreThr;
 
     auto dets = vision::pipelineProcessYuvRotated(yf, cfg, static_cast<int>(rotationDeg));
     return buildDetections(env, dets);
 }
 
-/**
- * Legacy shim (no rotation): NativeDetections nativeProcessYuv420(...)
- * Calls rotation-aware pipeline with rotationDeg = 0.
- */
 extern "C" JNIEXPORT jobject JNICALL
 Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeProcessYuv420(
-        JNIEnv* env, jclass /*clazz*/,
+        JNIEnv* env, jclass,
         jobject y, jobject u, jobject v,
         jint width, jint height,
         jint yRowStride, jint uRowStride, jint vRowStride,
@@ -126,7 +110,7 @@ Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeProcessYu
     auto* uPtr = static_cast<uint8_t*>(env->GetDirectBufferAddress(u));
     auto* vPtr = static_cast<uint8_t*>(env->GetDirectBufferAddress(v));
     if (!yPtr || !uPtr || !vPtr) {
-        LOGE("nativeProcessYuv420: non-direct ByteBuffer!");
+        LOGE("nativeProcessYuv420: non-direct ByteBuffer");
         vision::Detections empty;
         return buildDetections(env, empty);
     }
@@ -139,45 +123,40 @@ Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeProcessYu
     };
 
     vision::ProcessConfig cfg;
-    cfg.blurThreshold          = blurThr;
-    cfg.glareThresholdPercent  = glareThrPercent;
-    cfg.brightnessFloor        = brightFloor;
-    cfg.scoreThreshold         = scoreThr;
+    cfg.blurThreshold         = blurThr;
+    cfg.glareThresholdPercent = glareThrPercent;
+    cfg.brightnessFloor       = brightFloor;
+    cfg.scoreThreshold        = scoreThr;
 
-    auto dets = vision::pipelineProcessYuv(yf, cfg); // calls rotated(0°) internally
+    auto dets = vision::pipelineProcessYuv(yf, cfg);
     return buildDetections(env, dets);
 }
 
-/**
- * int nativeEncodeLastJpeg(ByteBuffer out, int capacity, int quality)
- * Returns positive length, or negative needed size if capacity too small, or -1 on error.
- */
 extern "C" JNIEXPORT jint JNICALL
 Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeEncodeLastJpeg(
-        JNIEnv* env, jclass /*clazz*/, jobject outBuffer, jint capacity, jint quality) {
+        JNIEnv* env, jobject, jobject jDirectBuffer, jint quality) {
+    if (!jDirectBuffer) return 0;
 
-    void* outPtr = env->GetDirectBufferAddress(outBuffer);
-    if (!outPtr) {
-        LOGE("nativeEncodeLastJpeg: non-direct ByteBuffer!");
-        return -1;
-    }
-    std::vector<uint8_t> jpg;
-    if (!vision::pipelineEncodeLastRgbaToJpeg(static_cast<int>(quality), jpg)) {
-        return -1;
-    }
-    if (static_cast<int>(jpg.size()) > capacity) {
-        return - static_cast<jint>(jpg.size());
-    }
-    std::memcpy(outPtr, jpg.data(), jpg.size());
-    return static_cast<jint>(jpg.size());
+    cv::Mat rgbaCopy;
+    if (!vision::getLastRgbaCopy(rgbaCopy)) return 0;
+
+    cv::Mat bgr;
+    cv::cvtColor(rgbaCopy, bgr, cv::COLOR_RGBA2BGR);
+
+    std::vector<uchar> jpeg;
+    std::vector<int> params = { cv::IMWRITE_JPEG_QUALITY, std::max(0, std::min(100, (int)quality)) };
+    if (!cv::imencode(".jpg", bgr, jpeg, params)) return 0;
+
+    auto* dst = reinterpret_cast<unsigned char*>(env->GetDirectBufferAddress(jDirectBuffer));
+    jlong capacity = env->GetDirectBufferCapacity(jDirectBuffer);
+    if (capacity < 0 || (size_t)capacity < jpeg.size()) return -(jint)jpeg.size();
+    memcpy(dst, jpeg.data(), jpeg.size());
+    return (jint)jpeg.size();
 }
 
-/**
- * String[] nativeGetLabels()
- */
 extern "C" JNIEXPORT jobjectArray JNICALL
 Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_nativeGetLabels(
-        JNIEnv* env, jclass /*clazz*/) {
+        JNIEnv* env, jclass) {
 
     const auto& lbs = vision::pipelineLabels();
     jclass stringCls = env->FindClass("java/lang/String");

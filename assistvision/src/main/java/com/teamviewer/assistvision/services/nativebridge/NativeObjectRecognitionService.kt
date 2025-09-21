@@ -88,7 +88,7 @@ class NativeObjectRecognitionService(private val appContext: Context) {
 
     /** JPEG export of the last rotated RGBA frame kept by native. */
     fun encodeLastJpeg(buf: ByteBuffer, quality: Int): Int =
-        JNIBridge.nativeEncodeLastJpeg(buf, buf.capacity(), quality)
+        JNIBridge.nativeEncodeLastJpeg(buf, quality)
 
     // ---- helpers ----
     private fun labelFor(id: Int): String {

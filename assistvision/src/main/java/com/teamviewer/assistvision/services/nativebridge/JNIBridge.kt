@@ -40,7 +40,7 @@ object JNIBridge {
 
     /** JPEG-encode the last rotated RGBA frame kept by native into [outBuffer] (capacity provided). Returns byte length or negative needed size. */
     @JvmStatic
-    external fun nativeEncodeLastJpeg(outBuffer: ByteBuffer, capacity: Int, quality: Int): Int
+    external fun nativeEncodeLastJpeg(buffer: ByteBuffer, quality: Int): Int
 
     /**
      * Result container mirrored by the native code.
