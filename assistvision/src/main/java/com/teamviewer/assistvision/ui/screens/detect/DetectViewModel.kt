@@ -1,12 +1,14 @@
 package com.teamviewer.assistvision.ui.screens.detect
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Box
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.teamviewer.assistar.demo.utils.ResourceProvider
 import com.teamviewer.assistvision.services.boot.TfLiteBoot
 import com.teamviewer.assistvision.usecase.DetectObjectsUseCaseImpl
 import com.teamviewer.assistvision.services.nativebridge.NativeObjectRecognitionService
+import com.teamviewer.assistvision.ui.screens.detect.model.Box
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -95,7 +97,13 @@ class DetectViewModel(
 
         viewModelScope.launch(Dispatchers.Main) {
             _uiState.value = _uiState.value.copy(
-                width = rotatedWidth, height = rotatedHeight, detections = processedDetections, blurVar = result.blur, glarePercent = result.glarePercent, brightness = result.brightness, processingMs = result.processingDuration
+                width = rotatedWidth,
+                height = rotatedHeight,
+                detections = processedDetections,
+                blurVar = result.blur,
+                glarePercent = result.glarePercent,
+                brightness = result.brightness,
+                processingMs = result.processingDuration
             )
         }
     }
@@ -113,14 +121,19 @@ class DetectViewModel(
             val file = File(resourceProvider.getCacheDirectory(), "shot_${System.currentTimeMillis()}.jpg")
             file.writeBytes(bytes)
             viewModelScope.launch(Dispatchers.Main) {
-                _uiState.value = _uiState.value.copy(savedShots = _uiState.value.savedShots + Uri.fromFile(file))
+                _uiState.value = _uiState.value.copy(
+                    savedShots = _uiState.value.savedShots + Uri.fromFile(file)
+                )
             }
         }
     }
-
-    private data class Box(var left: Float, var top: Float, var right: Float, var bottom: Float)
-    private fun rotatedDimens(width: Int, height: Int, rotationAngle: Int): Pair<Int, Int> = if (rotationAngle % 180 == 0) width to height else height to width
-    private fun clamp(box: Box, width: Float, height: Float): Box = Box(
-        left = box.left.coerceIn(0f, width), top = box.top.coerceIn(0f, height), right = box.right.coerceIn(0f, width), bottom = box.bottom.coerceIn(0f, height)
-    )
+    private fun rotatedDimens(width: Int, height: Int, rotationAngle: Int): Pair<Int, Int> =
+        if (rotationAngle % 180 == 0) width to height else height to width
+    private fun clamp(box: Box, width: Float, height: Float): Box =
+        Box(
+            left = box.left.coerceIn(0f, width),
+            top = box.top.coerceIn(0f, height),
+            right = box.right.coerceIn(0f, width),
+            bottom = box.bottom.coerceIn(0f, height)
+        )
 }
