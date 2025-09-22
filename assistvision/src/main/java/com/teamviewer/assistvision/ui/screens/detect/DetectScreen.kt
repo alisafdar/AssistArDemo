@@ -1,4 +1,4 @@
-package com.teamviewer.assistvision.ui.detect
+package com.teamviewer.assistvision.ui.screens.detect
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +22,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
-import com.teamviewer.assistvision.ui.detect.components.Camera
-import com.teamviewer.assistvision.ui.detect.components.DetectionsOverlay
+import com.teamviewer.assistvision.ui.screens.detect.components.Camera
+import com.teamviewer.assistvision.ui.screens.detect.components.DetectionsOverlay
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,11 +83,18 @@ fun DetectScreen() {
                         verticalArrangement = Arrangement.Bottom,
                         content = {
                             LazyRow(
-                                modifier = Modifier.fillMaxWidth().height(96.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(96.dp),
                                 content = {
                                     items(uiState.savedShots) { uri ->
                                         Image(
-                                            modifier = Modifier.width(128.dp).padding(6.dp), contentScale = ContentScale.Crop, painter = rememberAsyncImagePainter(uri), contentDescription = null
+                                            modifier = Modifier
+                                                .width(128.dp)
+                                                .padding(6.dp),
+                                            contentScale = ContentScale.Crop,
+                                            painter = rememberAsyncImagePainter(uri),
+                                            contentDescription = null
                                         )
                                     }
                                 }

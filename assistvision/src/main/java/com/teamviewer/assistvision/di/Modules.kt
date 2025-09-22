@@ -1,5 +1,6 @@
 package com.teamviewer.assistvision.di
 
+import com.teamviewer.assistar.demo.utils.ResourceProvider
 import com.teamviewer.assistvision.domain.service.ObjectRecognitionService
 import com.teamviewer.assistvision.domain.usecase.DetectObjectsUseCase
 import com.teamviewer.assistvision.ui.navigation.Navigator
@@ -8,7 +9,7 @@ import com.teamviewer.assistvision.usecase.DetectObjectsUseCaseImpl
 import com.teamviewer.assistvision.services.nativebridge.NativeObjectRecognitionService
 import com.teamviewer.assistvision.services.ws.LocalMockWebSocket
 import com.teamviewer.assistvision.services.ws.WebSocketDataSource
-import com.teamviewer.assistvision.ui.detect.DetectViewModel
+import com.teamviewer.assistvision.ui.screens.detect.DetectViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
@@ -16,6 +17,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val applicationModule = module {
+    singleOf(::ResourceProvider)
     singleOf(::NativeObjectRecognitionService) { bind<ObjectRecognitionService>() }
     singleOf(::NavigatorImpl) { bind<Navigator>() }
 }

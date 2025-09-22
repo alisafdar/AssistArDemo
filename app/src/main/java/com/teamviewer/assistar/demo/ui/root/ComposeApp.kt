@@ -13,8 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import com.teamviewer.assistar.demo.ui.navigation.NavRoute
 import com.teamviewer.assistar.demo.ui.navigation.NavigationAction
 import com.teamviewer.assistar.demo.ui.navigation.Navigator
-import com.teamviewer.assistar.demo.ui.dashboard.DashboardScreen
-import com.teamviewer.assistar.demo.ui.demo.DemoActivity
+import com.teamviewer.assistar.demo.ui.screens.dashboard.DashboardScreen
+import com.teamviewer.assistar.demo.ui.screens.demo.DemoActivity
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 

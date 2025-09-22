@@ -15,10 +15,10 @@ interface DetectObjectsUseCase {
         vRowStride: Int,
         uPixelStride: Int,
         vPixelStride: Int,
-        blurThr: Double,
-        glareThrPercent: Double,
-        brightnessFloor: Double,
-        scoreThr: Float,
-        rotationDeg: Int
+        blur: Double,
+        glarePercent: Double,
+        brightness: Double,
+        score: Float,
+        rotationDegrees: Int
     ): DetectionResult
 }

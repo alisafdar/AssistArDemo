@@ -1,4 +1,4 @@
-package com.teamviewer.assistar.demo.ui.dashboard
+package com.teamviewer.assistar.demo.ui.screens.dashboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.teamviewer.assistar.demo.R
 import com.teamviewer.assistar.demo.ui.shared.UIEventListener
+import com.teamviewer.assistvision.ui.shared.FillBackground
+import com.teamviewer.assistvision.ui.shared.FillSizeBackground
+import com.teamviewer.assistvision.ui.theme.ARTheme
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -80,7 +83,7 @@ fun DashboardScreenUI(
                 .heightIn(min = 60.dp)
                 .padding(top = 16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Blue
+                containerColor = ARTheme.colors.main,
             ),
             shape = RoundedCornerShape(12),
             onClick = {
@@ -97,16 +100,13 @@ fun DashboardScreenUI(
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun DashboardScreenPreview(){
-    DashboardScreenUI(
-        uiState = DashboardScreenUiState(
-            welcomeTitle = "Welcome to AssistAR",
-            buttonTitle = "Start AssistAR",
-            logo = R.drawable.assist_ar_logo,
-            logoDescription = "Teamviewer Logo"
-        ),
-        uiEventListener = {}
-    )
+    FillSizeBackground {
+        DashboardScreenUI(
+            uiState = DashboardScreenUiState(
+                welcomeTitle = "Welcome to AssistAR", buttonTitle = "Start AssistAR", logo = R.drawable.assist_ar_logo, logoDescription = "Teamviewer Logo"
+            ), uiEventListener = {})
+    }
 }

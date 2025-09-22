@@ -4,30 +4,30 @@ import java.nio.ByteBuffer
 
 object JNIBridge {
     @JvmStatic
-    external fun nativeInitEmbeddedSimple(useXnnpack: Boolean, numThreads: Int): Boolean
+    external fun initialize(): Boolean
 
     @JvmStatic
-    external fun nativeGetLabels(): Array<String>
+    external fun getLabels(): Array<String>
 
     @JvmStatic
-    external fun nativeProcessYuv420Rotated(
+    external fun processFrame(
         y: ByteBuffer, u: ByteBuffer, v: ByteBuffer,
         width: Int, height: Int,
         yRowStride: Int, uRowStride: Int, vRowStride: Int,
         uPixelStride: Int, vPixelStride: Int,
-        blurThr: Double, glareThrPercent: Double, brightnessFloor: Double,
-        scoreThr: Float,
-        rotationDeg: Int
+        blur: Double, glarePercent: Double, brightness: Double,
+        score: Float,
+        rotationDegrees: Int
     ): NativeDetections
 
     @JvmStatic
-    external fun nativeEncodeLastJpeg(buffer: ByteBuffer, quality: Int): Int
+    external fun encodeFrame(buffer: ByteBuffer, quality: Int): Int
 
     data class NativeDetections(
         val boxes: FloatArray,    // [left, top, right, bottom] * N (pixels in rotated image space)
-        val scores: FloatArray,   // N
-        val classes: IntArray,    // N (raw class ids)
-        val blurVar: Double,
+        val scores: FloatArray,
+        val classes: IntArray,
+        val blur: Double,
         val glarePercent: Double,
         val brightness: Double,
         val processingMs: Long
@@ -38,7 +38,7 @@ object JNIBridge {
 
             other as NativeDetections
 
-            if (blurVar != other.blurVar) return false
+            if (blur != other.blur) return false
             if (glarePercent != other.glarePercent) return false
             if (brightness != other.brightness) return false
             if (processingMs != other.processingMs) return false
@@ -50,7 +50,7 @@ object JNIBridge {
         }
 
         override fun hashCode(): Int {
-            var result = blurVar.hashCode()
+            var result = blur.hashCode()
             result = 31 * result + glarePercent.hashCode()
             result = 31 * result + brightness.hashCode()
             result = 31 * result + processingMs.hashCode()

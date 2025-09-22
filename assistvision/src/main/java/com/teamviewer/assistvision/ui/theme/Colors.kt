@@ -3,8 +3,8 @@ package com.teamviewer.assistvision.ui.theme
 import androidx.compose.ui.graphics.Color
 import com.teamviewer.assistvision.utils.extensions.withAlpha
 
-private val C24DarkBlue = Color(0xff022D94)
-private val C24LightBlue = Color(0xff0563C1)
+private val darkBlue = Color(0xff022D94)
+private val lightBlue = Color(0xff0563C1)
 
 private val black100 = Color(0x14000000)
 
@@ -114,9 +114,9 @@ val lightColors =
         onContainerVeryLight = grey400,
         onContainerVeryVeryLight = grey300,
         containerShadow = black100,
-        mainLight = C24LightBlue,
+        mainLight = lightBlue,
         main = blue600,
-        mainDark = C24DarkBlue,
+        mainDark = darkBlue,
         mainRipple =
         listOf(
             blue200

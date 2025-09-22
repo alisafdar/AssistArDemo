@@ -4,8 +4,8 @@ import com.teamviewer.assistvision.domain.model.DetectionsResult
 import java.nio.ByteBuffer
 
 interface ObjectRecognitionService {
-    fun initializeEmbedded(useXnnpack: Boolean = true, numThreads: Int = 2): Boolean
-    fun processYuv420Rotated(
+    fun initialize(): Boolean
+    fun processFrame(
         y: ByteBuffer, u: ByteBuffer, v: ByteBuffer,
         width: Int, height: Int,
         yRowStride: Int, uRowStride: Int, vRowStride: Int,
@@ -15,5 +15,5 @@ interface ObjectRecognitionService {
         rotationDeg: Int
     ): DetectionsResult
 
-    fun encodeLastJpeg(buf: ByteBuffer, quality: Int): Int
+    fun encodeLastFrame(buf: ByteBuffer, quality: Int): Int
 }

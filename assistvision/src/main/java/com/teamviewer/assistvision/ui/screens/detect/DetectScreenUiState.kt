@@ -1,4 +1,4 @@
-package com.teamviewer.assistvision.ui.detect
+package com.teamviewer.assistvision.ui.screens.detect
 
 import android.net.Uri
 

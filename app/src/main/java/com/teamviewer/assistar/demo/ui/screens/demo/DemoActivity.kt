@@ -1,4 +1,4 @@
-package com.teamviewer.assistar.demo.ui.demo
+package com.teamviewer.assistar.demo.ui.screens.demo
 
 import android.os.Bundle
 import android.widget.Toast

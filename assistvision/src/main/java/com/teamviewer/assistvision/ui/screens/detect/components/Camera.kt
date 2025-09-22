@@ -1,4 +1,4 @@
-package com.teamviewer.assistvision.ui.detect.components
+package com.teamviewer.assistvision.ui.screens.detect.components
 
 import android.util.Size
 import androidx.camera.core.CameraSelector

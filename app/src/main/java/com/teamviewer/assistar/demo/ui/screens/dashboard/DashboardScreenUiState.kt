@@ -1,4 +1,4 @@
-package com.teamviewer.assistar.demo.ui.dashboard
+package com.teamviewer.assistar.demo.ui.screens.dashboard
 
 import androidx.annotation.DrawableRes
 

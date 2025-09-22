@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
 import kotlin.collections.plusAssign
 
 class DetectObjectsUseCaseImpl(
-    private val nativeSvc: NativeObjectRecognitionService
+    private val recognitionService: NativeObjectRecognitionService
 ) : DetectObjectsUseCase {
     override operator fun invoke(
         y: ByteBuffer,
@@ -22,26 +22,32 @@ class DetectObjectsUseCaseImpl(
         vRowStride: Int,
         uPixelStride: Int,
         vPixelStride: Int,
-        blurThr: Double,
-        glareThrPercent: Double,
-        brightnessFloor: Double,
-        scoreThr: Float,
-        rotationDeg: Int
+        blur: Double,
+        glarePercent: Double,
+        brightness: Double,
+        score: Float,
+        rotationDegrees: Int
     ): DetectionResult {
-        val nd = JNIBridge.nativeProcessYuv420Rotated(
-            y, u, v, width, height, yRowStride, uRowStride, vRowStride, uPixelStride, vPixelStride, blurThr, glareThrPercent, brightnessFloor, scoreThr, rotationDeg
+        val frame = JNIBridge.processFrame(
+            y, u, v,
+            width, height,
+            yRowStride, uRowStride, vRowStride,
+            uPixelStride, vPixelStride,
+            blur, glarePercent, brightness,
+            score,
+            rotationDegrees
         )
-        val labels = nativeSvc.labels
+        val labels = recognitionService.labels
         fun labelFor(id: Int): String = labels.getOrNull(id) ?: labels.getOrNull(id - 1) ?: "id:$id"
 
-        val out = ArrayList<DomainDetection>(nd.scores.size)
-        for (i in nd.scores.indices) {
-            val l = nd.boxes[i * 4 + 0];
-            val t = nd.boxes[i * 4 + 1]
-            val r = nd.boxes[i * 4 + 2];
-            val b = nd.boxes[i * 4 + 3]
-            out += DomainDetection(labelFor(nd.classes[i]), nd.scores[i], l, t, r, b)
+        val out = ArrayList<DomainDetection>(frame.scores.size)
+        for (i in frame.scores.indices) {
+            val left = frame.boxes[i * 4 + 0];
+            val top = frame.boxes[i * 4 + 1]
+            val right = frame.boxes[i * 4 + 2];
+            val bottom = frame.boxes[i * 4 + 3]
+            out += DomainDetection(labelFor(frame.classes[i]), frame.scores[i], left, top, right, bottom)
         }
-        return DetectionResult(out, nd.blurVar, nd.glarePercent, nd.brightness, nd.processingMs)
+        return DetectionResult(out, frame.blur, frame.glarePercent, frame.brightness, frame.processingMs)
     }
 }

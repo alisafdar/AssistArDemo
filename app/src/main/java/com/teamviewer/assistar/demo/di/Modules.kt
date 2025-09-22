@@ -2,7 +2,7 @@ package com.teamviewer.assistar.demo.di
 
 import com.teamviewer.assistar.demo.ui.navigation.Navigator
 import com.teamviewer.assistar.demo.ui.navigation.NavigatorImpl
-import com.teamviewer.assistar.demo.ui.dashboard.DashboardScreenViewModel
+import com.teamviewer.assistar.demo.ui.screens.dashboard.DashboardScreenViewModel
 import com.teamviewer.assistar.demo.utils.ResourceProvider
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.bind

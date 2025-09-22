@@ -10,7 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.teamviewer.assistvision.gateway.domain.model.AssistArResult
 import com.teamviewer.assistvision.ui.navigation.NavRoute
 import com.teamviewer.assistvision.ui.navigation.NavigationAction
-import com.teamviewer.assistvision.ui.detect.DetectScreen
+import com.teamviewer.assistvision.ui.screens.detect.DetectScreen
 import com.teamviewer.assistvision.ui.navigation.Navigator
 import com.teamviewer.assistvision.ui.shared.AppBar
 import kotlinx.coroutines.flow.collectLatest

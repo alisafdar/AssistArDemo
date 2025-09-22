@@ -1,4 +1,4 @@
-package com.teamviewer.assistvision.ui.detect.components
+package com.teamviewer.assistvision.ui.screens.detect.components
 
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -15,14 +15,19 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.nativeCanvas
-import com.teamviewer.assistvision.ui.detect.UiDetection
+import com.teamviewer.assistvision.ui.screens.detect.UiDetection
 import kotlin.math.max
 
 @Composable
 fun DetectionsOverlay(
-    modifier: Modifier = Modifier, width: Int, height: Int, items: List<UiDetection>
+    modifier: Modifier = Modifier,
+    width: Int,
+    height: Int,
+    items: List<UiDetection>
 ) {
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(
+        modifier = modifier.fillMaxSize(),
+    ) {
         if (width <= 0 || height <= 0 || items.isEmpty()) return@Canvas
 
         val imageWidth = width.toFloat()
