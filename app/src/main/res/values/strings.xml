@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">AssistAR-Demo</string>
+    <string name="welcome_to_assistar">Welcome to AssistAR</string>
+    <string name="button_start_assistar">Start AssistAR</string>
+    <string name="assistar_logo_description">Teamviewer Logo</string>
 </resources>

@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.teamviewer.assistvision.boot.TfLiteBoot
-import com.teamviewer.assistvision.domain.usecase.DetectObjectsUseCase
+import com.teamviewer.assistvision.usecase.DetectObjectsUseCaseImpl
 import com.teamviewer.assistvision.services.nativebridge.NativeObjectRecognitionService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ data class DetectUiState(
 class DetectViewModel(
     private val appContext: Context,
     private val nativeSvc: NativeObjectRecognitionService,
-    private val detect: DetectObjectsUseCase
+    private val detect: DetectObjectsUseCaseImpl
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DetectUiState())
@@ -89,8 +89,8 @@ class DetectViewModel(
         viewModelScope.launch(Dispatchers.Main) {
             _state.value = _state.value.copy(
                 width = rotW, height = rotH, detections = uiDets,
-                blurVar = result.blurVar, glarePercent = result.glarePercent,
-                brightness = result.brightness, processingMs = result.processingMs
+                blurVar = result.blur, glarePercent = result.glarePercent,
+                brightness = result.brightness, processingMs = result.processingDuration
             )
         }
     }

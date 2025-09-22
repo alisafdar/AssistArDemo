@@ -24,3 +24,12 @@ data class Detection(
     val height: Float get() = bottom - top
     val area: Float   get() = (right - left) * (bottom - top)
 }
+
+data class DomainDetection(
+    val label: String,
+    val score: Float,
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float
+)

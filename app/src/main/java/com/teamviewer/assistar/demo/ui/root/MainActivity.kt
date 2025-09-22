@@ -1,12 +1,11 @@
-package com.teamviewer.assistar.demo
+package com.teamviewer.assistar.demo.ui.root
 
 import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import com.teamviewer.assistvision.ui.detect.DetectScreen
-
+import com.teamviewer.assistar.demo.ui.theme.AssistArTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -15,8 +14,10 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
             .launch(Manifest.permission.CAMERA)
 
-        setContent { DetectScreen() }
+        setContent {
+            AssistArTheme {
+                ComposeApp()
+            }
+        }
     }
 }
-
-

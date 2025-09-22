@@ -16,53 +16,42 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 object TfLiteBoot {
     private val ready = CompletableDeferred<Unit>()
-    private val libLoaded = AtomicBoolean(false)
+    private val isLibraryLoaded = AtomicBoolean(false)
     @Volatile private var delegate: String = "TFLite_CPU"
 
-    /** Fire-and-forget async kick-off (kept for convenience). */
-    fun kickOff(context: Context) {
-        if (ready.isCompleted || ready.isActive) return
-        val appCtx = context.applicationContext
-        GlobalScope.launch(Dispatchers.Default) {
-            runInit(appCtx, preferGpu = true)
-        }
-    }
-
-    /** Blocking init you can call from Application.onCreate(). */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun initBlocking(context: Context, preferGpu: Boolean = true, timeoutMs: Long = 500): Boolean {
         if (ready.isCompleted && ready.getCompletionExceptionOrNull() == null) return true
 
-        val appCtx = context.applicationContext
+        val context = context.applicationContext
         val latch = CountDownLatch(1)
-        var ok = false
+        var initialized = false
 
         GlobalScope.launch(Dispatchers.Default) {
-            ok = runInit(appCtx, preferGpu)
+            initialized = runInit(context, preferGpu)
             latch.countDown()
         }
 
         latch.await(timeoutMs, TimeUnit.MILLISECONDS)
 
-        return ok && ready.isCompleted && ready.getCompletionExceptionOrNull() == null
+        return initialized && ready.isCompleted && ready.getCompletionExceptionOrNull() == null
     }
 
-    /** Must be called before first JNI TFLite call if you didn’t use initBlocking. */
     suspend fun awaitReady() = ready.await()
 
-    fun delegateName(): String = delegate
-
-    fun ensureNativeLibraryLoaded(soName: String = "assistvision") {
-        if (libLoaded.compareAndSet(false, true)) {
-            System.loadLibrary(soName)
+    fun ensureNativeLibraryLoaded(libraryName: String = "assistvision") {
+        if (isLibraryLoaded.compareAndSet(false, true)) {
+            System.loadLibrary(libraryName)
         }
     }
-
-    private suspend fun runInit(appCtx: Context, preferGpu: Boolean): Boolean {
+    private suspend fun runInit(
+        context: Context,
+        preferGpu: Boolean
+    ): Boolean {
         if (ready.isCompleted) return true
         return try {
             // 1) Check GPU availability (Task<Boolean>)
-            val gpuAvailable = try { TfLiteGpu.isGpuDelegateAvailable(appCtx).await() } catch (_: Throwable) { false }
+            val gpuAvailable = try { TfLiteGpu.isGpuDelegateAvailable(context).await() } catch (_: Throwable) { false }
             val wantGpu = preferGpu && gpuAvailable
 
             fun opts(enableGpu: Boolean) = TfLiteInitializationOptions.builder()
@@ -71,12 +60,12 @@ object TfLiteBoot {
 
             // 2) Try GPU first (if desired), else CPU; on GPU failure, fall back to CPU
             try {
-                TfLiteNative.initialize(appCtx, opts(wantGpu)).await()
+                TfLiteNative.initialize(context, opts(wantGpu)).await()
                 delegate = if (wantGpu) "TFLite_GPU" else "TFLite_CPU"
             } catch (gpuFail: Throwable) {
                 if (wantGpu) {
                     // fallback to CPU
-                    TfLiteNative.initialize(appCtx, opts(false)).await()
+                    TfLiteNative.initialize(context, opts(false)).await()
                     delegate = "TFLite_CPU"
                 } else {
                     throw gpuFail
@@ -86,7 +75,7 @@ object TfLiteBoot {
             ready.complete(Unit)
             true
         } catch (e: Throwable) {
-            if (!ready.isCompleted) ready.completeExceptionally(e)
+            if (ready.isCompleted.not()) ready.completeExceptionally(e)
             false
         }
     }

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -68,7 +69,6 @@ dependencies {
     implementation(libs.bundles.images)
     implementation(libs.bundles.tensorflow)
     implementation(libs.bundles.xml.theme)
-    implementation(libs.androidx.compose.ui.graphics)
 
     debugImplementation(libs.bundles.debug.compose)
 }

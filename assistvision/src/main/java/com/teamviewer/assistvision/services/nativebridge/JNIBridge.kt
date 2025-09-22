@@ -2,31 +2,13 @@ package com.teamviewer.assistvision.services.nativebridge
 
 import java.nio.ByteBuffer
 
-/**
- * JNI entry points for AssistVision native pipeline.
- *
- * NOTE: Do NOT load the .so here. Load once in App.onCreate() via:
- *   TfLiteBoot.initBlocking(...); TfLiteBoot.ensureNativeLibraryLoaded("assistvision")
- */
 object JNIBridge {
-
-    /** Initialize native with embedded TFLite model + labels. GPU is chosen by GMS init on Java side. */
     @JvmStatic
     external fun nativeInitEmbeddedSimple(useXnnpack: Boolean, numThreads: Int): Boolean
 
-    /** Labels resolved from embedded labelmap.txt. */
     @JvmStatic
     external fun nativeGetLabels(): Array<String>
 
-    /**
-     * Rotation-aware processing (preferred).
-     * Native will:
-     *  - pack 3-plane YUV420 to NV21/I420 internally
-     *  - convert to RGBA
-     *  - rotate by [rotationDeg] (0/90/180/270)
-     *  - run inference on the rotated frame
-     *  - return pixel-space boxes in that rotated image space
-     */
     @JvmStatic
     external fun nativeProcessYuv420Rotated(
         y: ByteBuffer, u: ByteBuffer, v: ByteBuffer,
@@ -38,14 +20,9 @@ object JNIBridge {
         rotationDeg: Int
     ): NativeDetections
 
-    /** JPEG-encode the last rotated RGBA frame kept by native into [outBuffer] (capacity provided). Returns byte length or negative needed size. */
     @JvmStatic
     external fun nativeEncodeLastJpeg(buffer: ByteBuffer, quality: Int): Int
 
-    /**
-     * Result container mirrored by the native code.
-     * Constructor signature used in JNI: ([F [F [I D D D J) V
-     */
     data class NativeDetections(
         val boxes: FloatArray,    // [left, top, right, bottom] * N (pixels in rotated image space)
         val scores: FloatArray,   // N
@@ -54,5 +31,33 @@ object JNIBridge {
         val glarePercent: Double,
         val brightness: Double,
         val processingMs: Long
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as NativeDetections
+
+            if (blurVar != other.blurVar) return false
+            if (glarePercent != other.glarePercent) return false
+            if (brightness != other.brightness) return false
+            if (processingMs != other.processingMs) return false
+            if (!boxes.contentEquals(other.boxes)) return false
+            if (!scores.contentEquals(other.scores)) return false
+            if (!classes.contentEquals(other.classes)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = blurVar.hashCode()
+            result = 31 * result + glarePercent.hashCode()
+            result = 31 * result + brightness.hashCode()
+            result = 31 * result + processingMs.hashCode()
+            result = 31 * result + boxes.contentHashCode()
+            result = 31 * result + scores.contentHashCode()
+            result = 31 * result + classes.contentHashCode()
+            return result
+        }
+    }
 }

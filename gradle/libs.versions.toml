@@ -17,12 +17,14 @@ serialization = "1.6.3"
 material = "1.12.0"
 tensorflow = "16.4.0"
 ui-graphics = "1.9.1"
+navigation-common-ktx = "2.9.4"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library      = { id = "com.android.library",     version.ref = "agp" }
 kotlin-android       = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose       = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "compose-compiler-plugin" }
+kotlin-parcelize = { id = "kotlin-parcelize" }
 
 [libraries]
 androidx-compose-bom      = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
@@ -30,6 +32,7 @@ compose-ui            = { module = "androidx.compose.ui:ui" }
 compose-material3     = { module = "androidx.compose.material3:material3" }
 compose-tooling       = { module = "androidx.compose.ui:ui-tooling" }
 compose-tooling-prev  = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-navigation = { module = "androidx.navigation:navigation-compose" }
 activity-compose      = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 
 core-ktx              = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
@@ -55,13 +58,14 @@ tensorflow-gpu = { module = "com.google.android.gms:play-services-tflite-gpu", v
 tensorflow-java = { module = "com.google.android.gms:play-services-tflite-java", version.ref = "tensorflow" }
 tensorflow-support = { module = "com.google.android.gms:play-services-tflite-support", version.ref = "tensorflow" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "ui-graphics" }
+androidx-navigation-common-ktx = { group = "androidx.navigation", name = "navigation-common-ktx", version.ref = "navigation-common-ktx" }
 
 [bundles]
-ui-compose  = [ "compose-ui", "compose-material3", "compose-tooling-prev", "activity-compose" ]
+ui-compose  = [ "compose-ui", "compose-material3", "compose-tooling-prev", "compose-navigation", "activity-compose", "androidx-navigation-common-ktx", "androidx-compose-ui-graphics" ]
 androidx-core = [ "core-ktx", "lifecycle-runtime", "lifecycle-vm-compose" ]
 camerax     = [ "camera-core", "camera-camera2", "camera-lifecycle", "camera-view" ]
 di          = [ "koin-android", "koin-compose" ]
-network     = [ "coroutines", "okhttp"]
+network     = [ "coroutines", "okhttp", "serialization-json"]
 images      = [ "coil-compose" ]
 tensorflow = [ "tensorflow-gpu", "tensorflow-java", "tensorflow-support" ]
 debug-compose = [ "compose-tooling" ]
