@@ -3,8 +3,8 @@ package com.teamviewer.assistar.demo.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.teamviewer.assistar.demo.R
-import com.teamviewer.assistar.demo.navigation.Navigator
-import com.teamviewer.assistar.demo.navigation.toDemoActivity
+import com.teamviewer.assistar.demo.ui.navigation.Navigator
+import com.teamviewer.assistar.demo.ui.navigation.toDemoActivity
 import com.teamviewer.assistar.demo.ui.shared.UIEvent
 import com.teamviewer.assistar.demo.ui.shared.UIEventListener
 import com.teamviewer.assistar.demo.utils.ResourceProvider

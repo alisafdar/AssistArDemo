@@ -1,4 +1,4 @@
-package com.teamviewer.assistvision.boot
+package com.teamviewer.assistvision.services.boot
 
 import android.content.Context
 import com.google.android.gms.tflite.client.TfLiteInitializationOptions

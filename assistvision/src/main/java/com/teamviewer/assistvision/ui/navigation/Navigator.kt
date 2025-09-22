@@ -1,4 +1,4 @@
-package com.teamviewer.assistar.demo.navigation
+package com.teamviewer.assistvision.ui.navigation
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow

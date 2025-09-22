@@ -6,7 +6,7 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
-import com.teamviewer.assistvision.boot.TfLiteBoot
+import com.teamviewer.assistvision.services.boot.TfLiteBoot
 import com.teamviewer.assistvision.constants.FailureReasons
 import com.teamviewer.assistvision.di.applicationModule
 import com.teamviewer.assistvision.di.networkModule
@@ -22,7 +22,6 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.context.unloadKoinModules
-import org.koin.dsl.module
 
 internal interface BaseSimpleIdent {
     fun returnResult(result: AssistArResult)

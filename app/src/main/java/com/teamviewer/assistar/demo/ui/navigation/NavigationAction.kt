@@ -1,12 +1,13 @@
-package com.teamviewer.assistvision.navigation
+package com.teamviewer.assistar.demo.ui.navigation
 
 import androidx.navigation.NavOptions
-import com.teamviewer.assistvision.gateway.domain.model.AssistArResult
 
 open class NavRoute(
     val route: String
 ) {
-    data object DetectScreen : NavRoute("detectScreen")
+    data object DashboardScreen : NavRoute("dashboardScreen")
+
+    data object DemoActivity : NavRoute("demoActivity")
 }
 
 sealed interface NavigationAction {
@@ -17,19 +18,13 @@ sealed interface NavigationAction {
         val navOptions: NavOptions = NavOptions.Builder()
             .build()
     ) : NavigationAction
-
-    data class Quit(
-        val assistArResult: AssistArResult
-    ) : NavigationAction
-
-    data object CameraSettings : NavigationAction
 }
 
 suspend fun Navigator.pop() = invoke(NavigationAction.Back)
 
-suspend fun Navigator.toDetectScreen() =
+suspend fun Navigator.toDemoActivity() =
     invoke(
         NavigationAction.Navigate(
-            destination = NavRoute.DetectScreen.route
+            destination = NavRoute.DemoActivity.route
         )
     )

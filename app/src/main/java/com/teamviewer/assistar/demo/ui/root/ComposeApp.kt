@@ -10,9 +10,9 @@ import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.teamviewer.assistar.demo.navigation.NavRoute
-import com.teamviewer.assistar.demo.navigation.NavigationAction
-import com.teamviewer.assistar.demo.navigation.Navigator
+import com.teamviewer.assistar.demo.ui.navigation.NavRoute
+import com.teamviewer.assistar.demo.ui.navigation.NavigationAction
+import com.teamviewer.assistar.demo.ui.navigation.Navigator
 import com.teamviewer.assistar.demo.ui.dashboard.DashboardScreen
 import com.teamviewer.assistar.demo.ui.demo.DemoActivity
 import kotlinx.coroutines.flow.collectLatest

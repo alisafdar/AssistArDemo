@@ -4,15 +4,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.teamviewer.assistvision.gateway.domain.model.AssistArResult
-import com.teamviewer.assistvision.navigation.NavRoute
-import com.teamviewer.assistvision.navigation.NavigationAction
+import com.teamviewer.assistvision.ui.navigation.NavRoute
+import com.teamviewer.assistvision.ui.navigation.NavigationAction
 import com.teamviewer.assistvision.ui.detect.DetectScreen
-import com.teamviewer.assistvision.navigation.Navigator
+import com.teamviewer.assistvision.ui.navigation.Navigator
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 

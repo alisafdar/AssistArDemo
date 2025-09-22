@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.teamviewer.assistvision.boot.TfLiteBoot
+import com.teamviewer.assistvision.services.boot.TfLiteBoot
 import com.teamviewer.assistvision.usecase.DetectObjectsUseCaseImpl
 import com.teamviewer.assistvision.services.nativebridge.NativeObjectRecognitionService
 import kotlinx.coroutines.Dispatchers

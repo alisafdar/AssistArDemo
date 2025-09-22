@@ -2,8 +2,8 @@ package com.teamviewer.assistvision.di
 
 import com.teamviewer.assistvision.domain.service.ObjectRecognitionService
 import com.teamviewer.assistvision.domain.usecase.DetectObjectsUseCase
-import com.teamviewer.assistvision.navigation.Navigator
-import com.teamviewer.assistvision.navigation.NavigatorImpl
+import com.teamviewer.assistvision.ui.navigation.Navigator
+import com.teamviewer.assistvision.ui.navigation.NavigatorImpl
 import com.teamviewer.assistvision.usecase.DetectObjectsUseCaseImpl
 import com.teamviewer.assistvision.services.nativebridge.NativeObjectRecognitionService
 import com.teamviewer.assistvision.services.ws.LocalMockWebSocket
