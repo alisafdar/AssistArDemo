@@ -1,6 +1,5 @@
 package com.teamviewer.assistvision.ui.detect.components
 
-import android.annotation.SuppressLint
 import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -19,9 +18,8 @@ import kotlinx.coroutines.asExecutor
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 
-@SuppressLint("UnsafeOptInUsageError")
 @Composable
-fun CameraPreviewYuv(
+fun Camera(
     modifier: Modifier,
     onFps: (Double) -> Unit,
     onFrame: (
@@ -35,15 +33,17 @@ fun CameraPreviewYuv(
         vStride: Int,
         uPixStride: Int,
         vPixStride: Int,
-        rotationDegrees: Int,
-        isFrontCamera: Boolean
+        rotationDegrees: Int
     ) -> Unit
 ) {
-    val ctx = LocalContext.current
-    val previewView = remember { PreviewView(ctx) }
-    val provider = remember { ProcessCameraProvider.getInstance(ctx) }
+    val localContext = LocalContext.current
+    val previewView = remember { PreviewView(localContext) }
+    val provider = remember { ProcessCameraProvider.getInstance(localContext) }
 
-    AndroidView(modifier = modifier, factory = { previewView })
+    AndroidView(
+        modifier = modifier,
+        factory = { previewView }
+    )
 
     LaunchedEffect(Unit) {
         val cameraProvider = provider.get()
@@ -59,29 +59,28 @@ fun CameraPreviewYuv(
             .build()
 
         val fps = FpsCounter()
-        analyzer.setAnalyzer(Dispatchers.Default.asExecutor()) { img ->
+        analyzer.setAnalyzer(Dispatchers.Default.asExecutor()) { frame ->
             try {
                 fps.tick()
                 onFps(fps.fps())
 
-                val rotationDeg = img.imageInfo.rotationDegrees
-                val isFront = (selector.lensFacing == CameraSelector.LENS_FACING_FRONT)
+                val rotationDeg = frame.imageInfo.rotationDegrees
 
                 onFrame(
-                    img.planes[0].buffer, img.planes[1].buffer, img.planes[2].buffer,
-                    img.width, img.height,
-                    img.planes[0].rowStride, img.planes[1].rowStride, img.planes[2].rowStride,
-                    img.planes[1].pixelStride, img.planes[2].pixelStride,
-                    rotationDeg, isFront
+                    frame.planes[0].buffer, frame.planes[1].buffer, frame.planes[2].buffer,
+                    frame.width, frame.height,
+                    frame.planes[0].rowStride, frame.planes[1].rowStride, frame.planes[2].rowStride,
+                    frame.planes[1].pixelStride, frame.planes[2].pixelStride,
+                    rotationDeg
                 )
             } finally {
-                img.close()
+                frame.close()
             }
         }
 
         cameraProvider.unbindAll()
         cameraProvider.bindToLifecycle(
-            ctx as LifecycleOwner,
+            localContext as LifecycleOwner,
             selector,
             preview,
             analyzer
@@ -91,12 +90,12 @@ fun CameraPreviewYuv(
 
 private class FpsCounter {
     private val last = AtomicLong(System.nanoTime())
-    private var f = 0.0
+    private var fps = 0.0
     fun tick() {
         val now = System.nanoTime()
-        val dt = (now - last.getAndSet(now)).coerceAtLeast(1)
-        val inst = 1e9 / dt.toDouble()
-        f = if (f == 0.0) inst else f * 0.9 + inst * 0.1
+        val time = (now - last.getAndSet(now)).coerceAtLeast(1)
+        val instance = 1e9 / time.toDouble()
+        fps = if (fps == 0.0) instance else fps * 0.9 + instance * 0.1
     }
-    fun fps() = f
+    fun fps() = fps
 }

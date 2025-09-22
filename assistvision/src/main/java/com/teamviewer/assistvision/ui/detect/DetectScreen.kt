@@ -1,6 +1,7 @@
 package com.teamviewer.assistvision.ui.detect
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,80 +12,90 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
-import com.teamviewer.assistvision.ui.detect.components.CameraPreviewYuv
+import com.teamviewer.assistvision.ui.detect.components.Camera
 import com.teamviewer.assistvision.ui.detect.components.DetectionsOverlay
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetectScreen(vm: DetectViewModel = koinViewModel()) {
-    val state by vm.state.collectAsState()
+fun DetectScreen() {
 
-    // Make sure native pipeline is initialized once screen shows
-    LaunchedEffect(Unit) { vm.initializeNative() }
+    val viewModel = koinViewModel<DetectViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("AssistAR Object Detection") },
-                actions = {
+    LaunchedEffect(Unit) {
+        viewModel.initializeNative()
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        content = {
+            Camera(
+                modifier = Modifier.fillMaxSize(),
+                onFps = { viewModel.onFps(it) },
+                onFrame = { y, u, v, imageWidth, imageHeight, yRowStride, uRowStride, vRowStrides, uPixelStride, vPixelStride, rotationDegrees ->
+                viewModel.onFrame(
+                    y, u, v,
+                    width = imageWidth,
+                    height = imageHeight,
+                    yRowStride = yRowStride,
+                    uRowStride = uRowStride,
+                    vRowStride = vRowStrides,
+                    uPixelStride = uPixelStride,
+                    vPixelStride = vPixelStride,
+                    rotationDegrees = rotationDegrees
+                )
+            })
+
+            DetectionsOverlay(
+                modifier = Modifier.fillMaxSize(),
+                width = uiState.width,
+                height = uiState.height,
+                items = uiState.detections
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                content = {
                     Text(
-                        "FPS ${"%.1f".format(state.fps)}  ${state.processingMs}ms",
-                        modifier = Modifier.padding(end = 16.dp)
+                        text = "Blur ${"%.1f".format(uiState.blurVar)}\n" +
+                                "Glare ${"%.1f".format(uiState.glarePercent)}% \n" +
+                                "Bright ${"%.1f".format(uiState.brightness)}\n" +
+                                "FPS: ${"%.1f".format(uiState.fps)}\n" +
+                                "Duration: ${uiState.processingMs}ms",
+                        color = Color.White
+                    )
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                        verticalArrangement = Arrangement.Bottom,
+                        content = {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth().height(96.dp),
+                                content = {
+                                    items(uiState.savedShots) { uri ->
+                                        Image(
+                                            modifier = Modifier.width(128.dp).padding(6.dp), contentScale = ContentScale.Crop, painter = rememberAsyncImagePainter(uri), contentDescription = null
+                                        )
+                                    }
+                                }
+                            )
+                        }
                     )
                 }
             )
         }
-    ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-            Box(Modifier.weight(1f)) {
-                CameraPreviewYuv(
-                    modifier = Modifier.fillMaxSize(),
-                    onFps = { vm.onFps(it) },
-                    onFrame = { y, u, v, w, h, ys, us, vs, ups, vps, rotationDeg, isFront ->
-                        // NEW: pass rotation + lens facing so VM can rotate/mirror and center-crop boxes to the view
-                        vm.onFrameYuv(
-                            y, u, v, w, h, ys, us, vs, ups, vps,
-                            rotationDeg = rotationDeg,
-                            isFront = isFront
-                        )
-                    }
-                )
-
-                // Overlay expects view-space boxes + labels from VM
-                DetectionsOverlay(
-                    modifier = Modifier.fillMaxSize(), width = state.width, height = state.height, items = state.detections
-                )
-            }
-
-            Column(Modifier.fillMaxWidth()) {
-                Text(
-                    "Blur ${"%.1f".format(state.blurVar)} | " +
-                            "Glare ${"%.1f".format(state.glarePercent)}% | " +
-                            "Bright ${"%.1f".format(state.brightness)}"
-                )
-                LazyRow(Modifier.fillMaxWidth().height(96.dp)) {
-                    items(state.savedShots) { uri ->
-                        Image(
-                            painter = rememberAsyncImagePainter(uri),
-                            contentDescription = null,
-                            modifier = Modifier.width(128.dp).padding(6.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
-        }
-    }
+    )
 }

@@ -14,27 +14,14 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.ByteBuffer
 
-data class UiDetection(
-    val label: String, val score: Float,
-    val left: Float, val top: Float, val right: Float, val bottom: Float
-)
-
-data class DetectUiState(
-    val fps: Double = 0.0,
-    val width: Int = 0, val height: Int = 0,
-    val detections: List<UiDetection> = emptyList(),
-    val blurVar: Double = 0.0, val glarePercent: Double = 0.0, val brightness: Double = 0.0,
-    val processingMs: Long = 0, val savedShots: List<Uri> = emptyList()
-)
-
 class DetectViewModel(
     private val appContext: Context,
     private val nativeSvc: NativeObjectRecognitionService,
     private val detect: DetectObjectsUseCaseImpl
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(DetectUiState())
-    val state = _state.asStateFlow()
+    private val _uiState = MutableStateFlow(DetectUiState())
+    val uiState = _uiState.asStateFlow()
 
     private var jpegBuf = ByteBuffer.allocateDirect(1_000_000)
 
@@ -45,28 +32,25 @@ class DetectViewModel(
         }
     }
 
-    fun onFps(fps: Double) { _state.value = _state.value.copy(fps = fps) }
+    fun onFps(fps: Double) {
+        _uiState.value = _uiState.value.copy(fps = fps)
+    }
 
-    /**
-     * IMPORTANT: This runs on the CameraX analyzer thread and is synchronous so the ImageProxy
-     * stays open while native reads the Y/U/V buffers. Do NOT launch a coroutine here.
-     */
-    fun onFrameYuv(
+    fun onFrame(
         y: ByteBuffer, u: ByteBuffer, v: ByteBuffer,
         width: Int, height: Int,
         yRowStride: Int, uRowStride: Int, vRowStride: Int,
         uPixelStride: Int, vPixelStride: Int,
-        rotationDeg: Int, isFront: Boolean
+        rotationDegrees: Int
     ) {
-        // Native pipeline rotates internally; we only need rotated dimensions for overlay scaling.
         val result = detect(
             y, u, v, width, height,
             yRowStride, uRowStride, vRowStride, uPixelStride, vPixelStride,
             blurThr = 120.0, glareThrPercent = 8.0, brightnessFloor = 40.0, scoreThr = 0.5f,
-            rotationDeg = rotationDeg
+            rotationDeg = rotationDegrees
         )
 
-        val (rotW, rotH) = rotatedDims(width, height, rotationDeg)
+        val (rotW, rotH) = rotatedDims(width, height, rotationDegrees)
 
         // Boxes are already in rotated image pixel space (native rotates). Clamp to bounds.
         val uiDets = buildList {
@@ -87,7 +71,7 @@ class DetectViewModel(
 
         // Publish state on main
         viewModelScope.launch(Dispatchers.Main) {
-            _state.value = _state.value.copy(
+            _uiState.value = _uiState.value.copy(
                 width = rotW, height = rotH, detections = uiDets,
                 blurVar = result.blur, glarePercent = result.glarePercent,
                 brightness = result.brightness, processingMs = result.processingDuration
@@ -108,7 +92,7 @@ class DetectViewModel(
             val file = File(appContext.cacheDir, "shot_${System.currentTimeMillis()}.jpg")
             file.writeBytes(bytes)
             viewModelScope.launch(Dispatchers.Main) {
-                _state.value = _state.value.copy(savedShots = _state.value.savedShots + Uri.fromFile(file))
+                _uiState.value = _uiState.value.copy(savedShots = _uiState.value.savedShots + Uri.fromFile(file))
             }
         }
     }

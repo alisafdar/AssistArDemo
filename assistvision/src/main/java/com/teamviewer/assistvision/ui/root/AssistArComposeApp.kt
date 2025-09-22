@@ -12,6 +12,7 @@ import com.teamviewer.assistvision.ui.navigation.NavRoute
 import com.teamviewer.assistvision.ui.navigation.NavigationAction
 import com.teamviewer.assistvision.ui.detect.DetectScreen
 import com.teamviewer.assistvision.ui.navigation.Navigator
+import com.teamviewer.assistvision.ui.shared.AppBar
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 
@@ -54,6 +55,13 @@ internal fun AssistArComposeApp(
     Box(
         content = {
             Column {
+                AppBar(
+                    visible = true,
+                    onClose = {
+                        onResult(AssistArResult.Cancelled)
+                    }
+                )
+
                 NavHost(
                     navController = navController,
                     startDestination = NavRoute.DetectScreen.route,

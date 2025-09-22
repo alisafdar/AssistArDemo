@@ -20,37 +20,34 @@ import kotlin.math.max
 
 @Composable
 fun DetectionsOverlay(
-    modifier: Modifier = Modifier,
-    width: Int,
-    height: Int,
-    items: List<UiDetection>
+    modifier: Modifier = Modifier, width: Int, height: Int, items: List<UiDetection>
 ) {
     Canvas(modifier = modifier.fillMaxSize()) {
         if (width <= 0 || height <= 0 || items.isEmpty()) return@Canvas
 
-        val imgW = width.toFloat()
-        val imgH = height.toFloat()
-        val canvasW = size.width
-        val canvasH = size.height
+        val imageWidth = width.toFloat()
+        val imageHeight = height.toFloat()
+        val canvasWidth = size.width
+        val canvasHeight = size.height
 
-        val scale = max(canvasW / imgW, canvasH / imgH)
-        val dx = (canvasW - imgW * scale) / 2f
-        val dy = (canvasH - imgH * scale) / 2f
+        val scale = max(canvasWidth / imageWidth, canvasHeight / imageHeight)
+        val dx = (canvasWidth - imageWidth * scale) / 2f
+        val dy = (canvasHeight - imageHeight * scale) / 2f
 
         withTransform({
             translate(dx, dy)
             scale(scaleX = scale, scaleY = scale)
         }) {
-            clipRect(left = 0f, top = 0f, right = imgW, bottom = imgH) {
+            clipRect(left = 0f, top = 0f, right = imageWidth, bottom = imageHeight) {
                 val stroke = Stroke(width = 3f, pathEffect = PathEffect.cornerPathEffect(8f))
-                items.forEach { d ->
-                    val l = d.left.coerceIn(0f, imgW)
-                    val t = d.top.coerceIn(0f, imgH)
-                    val r = d.right.coerceIn(0f, imgW)
-                    val b = d.bottom.coerceIn(0f, imgH)
-                    if (r > l && b > t) {
-                        drawRect(Color.Red, topLeft = Offset(l, t), size = Size(r - l, b - t), style = stroke)
-                        drawBanner("${d.label} (${(d.score * 100).toInt()}%)", l, t)
+                items.forEach { boundingBox ->
+                    val leftCoordinate = boundingBox.left.coerceIn(0f, imageWidth)
+                    val topCoordinate = boundingBox.top.coerceIn(0f, imageHeight)
+                    val rightCoordinate = boundingBox.right.coerceIn(0f, imageWidth)
+                    val bottomCoordinate = boundingBox.bottom.coerceIn(0f, imageHeight)
+                    if (rightCoordinate > leftCoordinate && bottomCoordinate > topCoordinate) {
+                        drawRect(Color.Red, topLeft = Offset(leftCoordinate, topCoordinate), size = Size(rightCoordinate - leftCoordinate, bottomCoordinate - topCoordinate), style = stroke)
+                        drawBanner("${boundingBox.label} (${(boundingBox.score * 100).toInt()}%)", leftCoordinate, topCoordinate)
                     }
                 }
             }
@@ -58,26 +55,26 @@ fun DetectionsOverlay(
     }
 }
 
-private fun DrawScope.drawBanner(text: String, l: Float, t: Float) {
+private fun DrawScope.drawBanner(text: String, left: Float, top: Float) {
     drawContext.canvas.nativeCanvas.apply {
-        val bg = Paint().apply {
+        val backgroundPaint = Paint().apply {
             color = 0x99000000.toInt()
             style = Paint.Style.FILL
             isAntiAlias = true
         }
-        val p = Paint().apply {
+        val paint = Paint().apply {
             isAntiAlias = true
             color = android.graphics.Color.RED
             textSize = 24f
             typeface = Typeface.create("", Typeface.BOLD)
         }
-        val pad = 6f
-        val tw = p.measureText(text)
-        val fm = p.fontMetrics
-        val th = fm.bottom - fm.top
-        val bx = l
-        val by = (t - th - 6f).coerceAtLeast(4f)
-        drawRect(bx - pad, by - pad, bx + tw + pad, by + th - fm.bottom + pad, bg)
-        drawText(text, bx, by - fm.top, p)
+        val padding = 6f
+        val textWidth = paint.measureText(text)
+        val fontMetrics = paint.fontMetrics
+        val textHeight = fontMetrics.bottom - fontMetrics.top
+        val bx = left
+        val by = (top - textHeight - 6f).coerceAtLeast(4f)
+        drawRect(bx - padding, by - padding, bx + textWidth + padding, by + textHeight - fontMetrics.bottom + padding, backgroundPaint)
+        drawText(text, bx, by - fontMetrics.top, paint)
     }
 }

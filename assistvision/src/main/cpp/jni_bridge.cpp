@@ -12,7 +12,6 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  "assistvision", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "assistvision", __VA_ARGS__)
 
-// Helper: build JNIBridge.NativeDetections from vision::Detections
 static jobject buildDetections(JNIEnv* env, const vision::Detections& d) {
     jclass outCls = env->FindClass("com/teamviewer/assistvision/services/nativebridge/JNIBridge$NativeDetections");
     jmethodID ctor = env->GetMethodID(outCls, "<init>", "([F[F[IDDDJ)V");

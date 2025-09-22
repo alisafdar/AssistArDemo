@@ -12,7 +12,7 @@ internal val LocalSiColors =
         lightColors
     }
 
-object SITheme {
+object ARTheme {
     val colors: SIColors
         @Composable
         @ReadOnlyComposable
