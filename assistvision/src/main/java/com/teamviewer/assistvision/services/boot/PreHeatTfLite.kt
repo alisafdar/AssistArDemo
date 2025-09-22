@@ -14,13 +14,17 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-object TfLiteBoot {
+object PreHeatTfLite {
     private val ready = CompletableDeferred<Unit>()
     private val isLibraryLoaded = AtomicBoolean(false)
     @Volatile private var delegate: String = "TFLite_CPU"
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun initBlocking(context: Context, preferGpu: Boolean = true, timeoutMs: Long = 500): Boolean {
+    fun initBlocking(
+        context: Context,
+        preferGpu: Boolean = false,
+        timeoutMs: Long = 500
+    ): Boolean {
         if (ready.isCompleted && ready.getCompletionExceptionOrNull() == null) return true
 
         val context = context.applicationContext
@@ -28,7 +32,7 @@ object TfLiteBoot {
         var initialized = false
 
         GlobalScope.launch(Dispatchers.Default) {
-            initialized = runInit(context, preferGpu)
+            initialized = initializeTfLite(context, preferGpu)
             latch.countDown()
         }
 
@@ -44,28 +48,29 @@ object TfLiteBoot {
             System.loadLibrary(libraryName)
         }
     }
-    private suspend fun runInit(
+    private suspend fun initializeTfLite(
         context: Context,
         preferGpu: Boolean
     ): Boolean {
         if (ready.isCompleted) return true
         return try {
-            // 1) Check GPU availability (Task<Boolean>)
-            val gpuAvailable = try { TfLiteGpu.isGpuDelegateAvailable(context).await() } catch (_: Throwable) { false }
+            val gpuAvailable = try {
+                TfLiteGpu.isGpuDelegateAvailable(context).await()
+            } catch (_: Throwable) {
+                false
+            }
             val wantGpu = preferGpu && gpuAvailable
 
-            fun opts(enableGpu: Boolean) = TfLiteInitializationOptions.builder()
+            fun tfliteOptions(enableGpu: Boolean) = TfLiteInitializationOptions.builder()
                 .setEnableGpuDelegateSupport(enableGpu)
                 .build()
 
-            // 2) Try GPU first (if desired), else CPU; on GPU failure, fall back to CPU
             try {
-                TfLiteNative.initialize(context, opts(wantGpu)).await()
+                TfLiteNative.initialize(context, tfliteOptions(wantGpu)).await()
                 delegate = if (wantGpu) "TFLite_GPU" else "TFLite_CPU"
             } catch (gpuFail: Throwable) {
                 if (wantGpu) {
-                    // fallback to CPU
-                    TfLiteNative.initialize(context, opts(false)).await()
+                    TfLiteNative.initialize(context, tfliteOptions(false)).await()
                     delegate = "TFLite_CPU"
                 } else {
                     throw gpuFail

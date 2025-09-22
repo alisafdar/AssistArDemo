@@ -1,11 +1,10 @@
 package com.teamviewer.assistvision.ui.screens.detect
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Box
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.teamviewer.assistar.demo.utils.ResourceProvider
-import com.teamviewer.assistvision.services.boot.TfLiteBoot
+import com.teamviewer.assistvision.services.boot.PreHeatTfLite
 import com.teamviewer.assistvision.usecase.DetectObjectsUseCaseImpl
 import com.teamviewer.assistvision.services.nativebridge.NativeObjectRecognitionService
 import com.teamviewer.assistvision.ui.screens.detect.model.Box
@@ -28,7 +27,7 @@ class DetectViewModel(
 
     fun initializeNative() {
         viewModelScope.launch(Dispatchers.Default) {
-            TfLiteBoot.awaitReady()
+            PreHeatTfLite.awaitReady()
             recognitionService.initialize()
         }
     }

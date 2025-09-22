@@ -38,6 +38,7 @@ class DetectObjectsUseCaseImpl(
             rotationDegrees
         )
         val labels = recognitionService.labels
+
         fun labelFor(id: Int): String = labels.getOrNull(id) ?: labels.getOrNull(id - 1) ?: "id:$id"
 
         val out = ArrayList<DomainDetection>(frame.scores.size)

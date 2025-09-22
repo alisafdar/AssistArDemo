@@ -6,7 +6,7 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
-import com.teamviewer.assistvision.services.boot.TfLiteBoot
+import com.teamviewer.assistvision.services.boot.PreHeatTfLite
 import com.teamviewer.assistvision.constants.FailureReasons
 import com.teamviewer.assistvision.di.applicationModule
 import com.teamviewer.assistvision.di.networkModule
@@ -41,8 +41,8 @@ internal fun BaseSimpleIdent.makeView(
         return View(context)
     }
 
-    TfLiteBoot.initBlocking(context, preferGpu = true, timeoutMs = 500)
-    TfLiteBoot.ensureNativeLibraryLoaded("assistvision")
+    PreHeatTfLite.initBlocking(context)
+    PreHeatTfLite.ensureNativeLibraryLoaded()
 
     loadKoin(
         context, config
