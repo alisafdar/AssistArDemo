@@ -64,8 +64,8 @@ class NativeObjectRecognitionService: ObjectRecognitionService {
         return DetectionsResult(detections, frame.blur, frame.glarePercent, frame.brightness, frame.processingMs)
     }
 
-    override fun encodeLastFrame(buf: ByteBuffer, quality: Int): Int =
-        JNIBridge.encodeFrame(buf, quality)
+    override fun encodeLastFrame(buffer: ByteBuffer, quality: Int): Int =
+        JNIBridge.encodeFrame(buffer, quality)
 
     private fun labelFor(id: Int): String {
         // Try 0-based first, then 1-based (COCO style). Fallback to "id:x".

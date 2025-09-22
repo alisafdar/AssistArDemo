@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class DetectViewModel(
     private val resourceProvider: ResourceProvider,
@@ -23,7 +24,10 @@ class DetectViewModel(
 
     private val _uiState = MutableStateFlow(DetectUiState())
     val uiState = _uiState.asStateFlow()
-    private var jpegOutputBuffer = ByteBuffer.allocateDirect(1_000_000)
+    @Volatile private var lastSavedAtMs: Long = 0L
+    private val minSaveIntervalMs = 1500L
+    private fun newDirect(n: Int) = ByteBuffer.allocateDirect(n).order(ByteOrder.nativeOrder())
+    private var jpegOutputBuffer: ByteBuffer = newDirect(256 * 1024)
 
     fun initializeNative() {
         viewModelScope.launch(Dispatchers.Default) {
@@ -88,9 +92,11 @@ class DetectViewModel(
             }
         }
 
-        if (processedDetections.any { it.label.equals("banana", true) && it.score >= 0.5f }) {
-            viewModelScope.launch(Dispatchers.IO) {
-                saveCurrentJpegNative()
+        val hasBanana = processedDetections.any { it.label.equals("banana", true) && it.score >= 0.5f }
+        if (hasBanana) {
+            val now = System.currentTimeMillis()
+            if (now - lastSavedAtMs > minSaveIntervalMs) {
+                viewModelScope.launch(Dispatchers.IO) { saveCurrentJpegNative(90) }
             }
         }
 
@@ -107,25 +113,38 @@ class DetectViewModel(
         }
     }
 
-    private fun saveCurrentJpegNative() {
-        var encodedLength = recognitionService.encodeLastFrame(jpegOutputBuffer, 90)
+    private fun saveCurrentJpegNative(quality: Int = 90) {
+        jpegOutputBuffer.clear()
+
+        var encodedLength = recognitionService.encodeLastFrame(jpegOutputBuffer, quality)
+
         if (encodedLength < 0) {
             val need = -encodedLength
-            jpegOutputBuffer = ByteBuffer.allocateDirect(need)
-            encodedLength = recognitionService.encodeLastFrame(jpegOutputBuffer, 90)
+            jpegOutputBuffer = newDirect(need)
+            jpegOutputBuffer.clear()
+            encodedLength = recognitionService.encodeLastFrame(jpegOutputBuffer, quality)
         }
-        if (encodedLength > 0) {
-            val bytes = ByteArray(encodedLength)
-            jpegOutputBuffer.rewind(); jpegOutputBuffer.get(bytes)
-            val file = File(resourceProvider.getCacheDirectory(), "shot_${System.currentTimeMillis()}.jpg")
-            file.writeBytes(bytes)
-            viewModelScope.launch(Dispatchers.Main) {
-                _uiState.value = _uiState.value.copy(
-                    savedShots = _uiState.value.savedShots + Uri.fromFile(file)
-                )
-            }
+
+        if (encodedLength <= 0) return
+
+        val len = encodedLength
+        val bytes = ByteArray(len)
+
+        jpegOutputBuffer.position(0)
+        jpegOutputBuffer.limit(len)
+        jpegOutputBuffer.get(bytes, 0, len)
+
+        val file = File(resourceProvider.getCacheDirectory(), "shot_${System.currentTimeMillis()}.jpg")
+        file.writeBytes(bytes)
+
+        lastSavedAtMs = System.currentTimeMillis()
+        viewModelScope.launch(Dispatchers.Main) {
+            _uiState.value = _uiState.value.copy(
+                savedShots = _uiState.value.savedShots + Uri.fromFile(file)
+            )
         }
     }
+
     private fun rotatedDimens(width: Int, height: Int, rotationAngle: Int): Pair<Int, Int> =
         if (rotationAngle % 180 == 0) width to height else height to width
     private fun clamp(box: Box, width: Float, height: Float): Box =

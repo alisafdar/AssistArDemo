@@ -15,5 +15,5 @@ interface ObjectRecognitionService {
         rotationDeg: Int
     ): DetectionsResult
 
-    fun encodeLastFrame(buf: ByteBuffer, quality: Int): Int
+    fun encodeLastFrame(buffer: ByteBuffer, quality: Int): Int
 }
