@@ -12,6 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -24,10 +27,12 @@ class DetectViewModel(
 
     private val _uiState = MutableStateFlow(DetectUiState())
     val uiState = _uiState.asStateFlow()
+    private val saveMutex = Mutex()
     @Volatile private var lastSavedAtMs: Long = 0L
     private val minSaveIntervalMs = 1500L
+
     private fun newDirect(n: Int) = ByteBuffer.allocateDirect(n).order(ByteOrder.nativeOrder())
-    private var jpegOutputBuffer: ByteBuffer = newDirect(256 * 1024)
+    @Volatile private var jpegOutputBuffer: ByteBuffer = newDirect(256 * 1024)
 
     fun initializeNative() {
         viewModelScope.launch(Dispatchers.Default) {
@@ -96,6 +101,7 @@ class DetectViewModel(
         if (hasBanana) {
             val now = System.currentTimeMillis()
             if (now - lastSavedAtMs > minSaveIntervalMs) {
+                lastSavedAtMs = now
                 viewModelScope.launch(Dispatchers.IO) { saveCurrentJpegNative(90) }
             }
         }
@@ -113,35 +119,38 @@ class DetectViewModel(
         }
     }
 
-    private fun saveCurrentJpegNative(quality: Int = 90) {
-        jpegOutputBuffer.clear()
+    private suspend fun saveCurrentJpegNative(quality: Int = 90) = saveMutex.withLock {
+        var buf = jpegOutputBuffer
+        buf.clear()
 
-        var encodedLength = recognitionService.encodeLastFrame(jpegOutputBuffer, quality)
-
+        var encodedLength = recognitionService.encodeLastFrame(buf, quality)
         if (encodedLength < 0) {
             val need = -encodedLength
-            jpegOutputBuffer = newDirect(need)
-            jpegOutputBuffer.clear()
-            encodedLength = recognitionService.encodeLastFrame(jpegOutputBuffer, quality)
+            buf = newDirect(need)  // allocate a private buffer
+            buf.clear()
+            encodedLength = recognitionService.encodeLastFrame(buf, quality)
+            if (encodedLength <= 0) return@withLock
+            // publish the larger buffer only after success, while still holding the lock
+            jpegOutputBuffer = buf
         }
 
-        if (encodedLength <= 0) return
+        if (encodedLength <= 0) return@withLock
 
         val len = encodedLength
         val bytes = ByteArray(len)
 
-        jpegOutputBuffer.position(0)
-        jpegOutputBuffer.limit(len)
-        jpegOutputBuffer.get(bytes, 0, len)
+        // Safe: 'buf' is exactly the buffer native wrote into and we hold the lock
+        buf.position(0)
+        buf.limit(len)
+        buf.get(bytes, 0, len)
 
         val file = File(resourceProvider.getCacheDirectory(), "shot_${System.currentTimeMillis()}.jpg")
         file.writeBytes(bytes)
 
         lastSavedAtMs = System.currentTimeMillis()
-        viewModelScope.launch(Dispatchers.Main) {
-            _uiState.value = _uiState.value.copy(
-                savedShots = _uiState.value.savedShots + Uri.fromFile(file)
-            )
+
+        withContext(Dispatchers.Main) {
+            _uiState.value = _uiState.value.copy(savedShots = _uiState.value.savedShots + Uri.fromFile(file))
         }
     }
 

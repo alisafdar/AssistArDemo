@@ -95,7 +95,7 @@ Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_processFrame(
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_teamviewer_assistvision_services_nativebridge_JNIBridge_encodeFrame(
-        JNIEnv* env, jobject, jobject jDirectBuffer, jint quality) {
+        JNIEnv* env, jclass, jobject jDirectBuffer, jint quality) {
     if (!jDirectBuffer) return 0;
 
     cv::Mat rgbaCopy;
